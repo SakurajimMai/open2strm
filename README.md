@@ -300,13 +300,15 @@ python strm.py -c config.yaml
 .nfo .jpg .jpeg .png .gif .bmp .webp .svg .ico .srt .ass .ssa .vtt .sub
 ```
 
-## 开发与测试
+## 开发与验证
 
-运行单元测试：
+正式仓库不保留测试文件。需要本地回归时，可以自行创建 `tests/` 并使用 Python `unittest`：
 
 ```bash
 python -m unittest discover -s tests -p "test_*.py" -v
 ```
+
+`tests/` 已加入 `.gitignore` 和 `.dockerignore`，不会进入 GitHub 仓库或 Docker 构建上下文。
 
 语法检查：
 

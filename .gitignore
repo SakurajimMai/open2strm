@@ -29,6 +29,11 @@ instance/
 data/
 .test_tmp/
 
+# 本地测试文件
+test/
+tests/
+*.test.*
+
 # IDE
 .vscode/
 .idea/
