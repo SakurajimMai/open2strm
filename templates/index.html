@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block title %}STRM 任务控制台{% endblock %}
+{% block content %}
+<section class="panel hero">
+  <div>
+    <p class="eyebrow">OpenList STRM 后台服务</p>
+    <h1>任务控制台</h1>
+    <p class="muted">提交下载任务后，后台 worker 会串行执行，避免多个任务同时写入同一输出目录。</p>
+  </div>
+  <form class="run-form" method="post" action="{{ url_for('create_task') }}">
+    <label for="profile_id">配置档案</label>
+    <div class="inline-form">
+      <select id="profile_id" name="profile_id">
+        {% for profile in profiles %}
+          <option value="{{ profile.id }}" {% if profile.id == default_profile_id %}selected{% endif %}>
+            {{ profile.name }}
+          </option>
+        {% endfor %}
+      </select>
+      <button type="submit">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+        开始同步
+      </button>
+    </div>
+  </form>
+</section>
+
+<section class="panel">
+  <div class="section-title">
+    <h2>最近任务</h2>
+    <a class="link-button" href="{{ url_for('error_logs') }}">错误日志</a>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>状态</th>
+          <th>配置档案</th>
+          <th>创建</th>
+          <th>统计</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for task in tasks %}
+          <tr>
+            <td>#{{ task.id }}</td>
+            <td><span class="status {{ task.status }}">{{ task.status }}</span></td>
+            <td>{{ task.profile_name or ("#" ~ task.profile_id) }}</td>
+            <td>{{ task.created_at }}</td>
+            <td>
+              <span class="muted">STRM</span> {{ task.stats.get("strm_created", 0) }} /
+              <span class="muted">文件</span> {{ task.stats.get("files_downloaded", 0) }} /
+              <span class="muted">错误</span> {{ task.stats.get("errors", 0) }}
+            </td>
+            <td>
+              <a class="link-button" href="{{ url_for('task_detail', task_id=task.id) }}">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                查看
+              </a>
+            </td>
+          </tr>
+        {% else %}
+          <tr>
+            <td colspan="6" class="empty">
+              <div style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--line)"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+                还没有任务，提交一次同步后会显示在这里。
+              </div>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

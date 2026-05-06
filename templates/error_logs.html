@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}错误日志{% endblock %}
+{% block content %}
+<section class="panel hero">
+  <div>
+    <p class="eyebrow">Error Logs</p>
+    <h1>错误日志</h1>
+    <p class="muted">这里只记录 ERROR 级别日志，便于快速定位下载、配置和任务执行问题。</p>
+  </div>
+</section>
+
+<section class="panel">
+  <form method="get" action="{{ url_for('error_logs') }}" class="filter-form">
+    <div>
+      <label for="task_id">任务 ID</label>
+      <input id="task_id" name="task_id" value="{{ filters.task_id or '' }}" inputmode="numeric">
+    </div>
+    <div>
+      <label for="source">来源</label>
+      <input id="source" name="source" value="{{ filters.source or '' }}" placeholder="task_manager">
+    </div>
+    <div>
+      <label for="keyword">关键词</label>
+      <input id="keyword" name="keyword" value="{{ filters.keyword or '' }}" placeholder="错误信息">
+    </div>
+    <div>
+      <label for="limit">条数</label>
+      <input id="limit" name="limit" value="{{ filters.limit }}" inputmode="numeric">
+    </div>
+    <div class="filter-actions">
+      <button type="submit">筛选</button>
+      <a class="link-button" href="{{ url_for('error_logs') }}">清空</a>
+    </div>
+  </form>
+</section>
+
+<section class="panel">
+  {% if logs %}
+    <div class="error-list">
+      {% for log in logs %}
+        <article class="error-item">
+          <div class="error-meta">
+            <strong>{{ log.created_at }}</strong>
+            <span>{{ log.source }}</span>
+            <span>{{ log.level }}</span>
+            {% if log.profile_name %}<span>{{ log.profile_name }}</span>{% endif %}
+            {% if log.task_id %}<a class="link-button" href="{{ url_for('task_detail', task_id=log.task_id) }}">任务 #{{ log.task_id }}</a>{% endif %}
+          </div>
+          <p>{{ log.message }}</p>
+          {% if log.details %}
+            <pre class="log-box">{{ log.details }}</pre>
+          {% endif %}
+        </article>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="empty">当前没有错误日志。</p>
+  {% endif %}
+</section>
+{% endblock %}

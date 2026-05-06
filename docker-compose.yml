@@ -1,0 +1,18 @@
+services:
+  strm:
+    image: ghcr.io/sakurajimmai/open2strm:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: strm
+    environment:
+      PORT: "5000"
+      STRM_DATA_DIR: /app/data
+      STRM_START_WORKER: "1"
+      TZ: UTC
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./data:/app/data
+      - ./downloads:/app/downloads
+    restart: unless-stopped

@@ -1,0 +1,47 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+
+# 配置文件（包含敏感信息）
+config.yaml
+config.yml
+config_*.yaml
+*_config.yaml
+*.config.yaml
+*.config.yml
+!config.example.yaml
+
+# 下载的文件
+downloads/
+*.strm
+*.nfo
+
+# 日志文件
+*.log
+logs/
+instance/
+data/
+.test_tmp/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# 本地临时脚本
+debug_*.py
+fix_syntax*.py
+check_files.py
+cleanup_missing.py

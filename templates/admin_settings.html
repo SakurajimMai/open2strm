@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}管理员设置{% endblock %}
+{% block content %}
+<section class="panel hero">
+  <div>
+    <p class="eyebrow">Admin</p>
+    <h1>管理员设置</h1>
+    <p class="muted">可在这里修改后台登录账号和密码。默认账号是 <span class="mono">admin</span> / <span class="mono">admin</span>。</p>
+  </div>
+</section>
+
+{% if success %}
+  <section class="panel form-errors success-box">
+    <strong>{{ success }}</strong>
+  </section>
+{% endif %}
+
+{% if errors %}
+  <section class="panel form-errors">
+    <ul>
+      {% for error in errors %}
+        <li>{{ error }}</li>
+      {% endfor %}
+    </ul>
+  </section>
+{% endif %}
+
+<section class="panel auth-panel">
+  <form method="post" action="{{ url_for('update_admin_settings') }}">
+    <div class="check-row">
+      <input id="enabled" name="enabled" type="checkbox" {% if auth.enabled %}checked{% endif %}>
+      <label for="enabled">启用登录鉴权</label>
+    </div>
+    <label for="username">管理员用户名</label>
+    <input id="username" name="username" value="{{ auth.username }}">
+    <label for="password">新密码</label>
+    <input id="password" name="password" type="password" autocomplete="new-password" placeholder="留空则不修改">
+    <label for="confirm_password">确认新密码</label>
+    <input id="confirm_password" name="confirm_password" type="password" autocomplete="new-password">
+    <div class="form-actions">
+      <button type="submit">保存设置</button>
+    </div>
+  </form>
+</section>
+{% endblock %}

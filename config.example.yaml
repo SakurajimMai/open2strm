@@ -1,0 +1,138 @@
+# OpenList STRM下载工具配置文件示例
+# 复制此文件为 config.yaml 并根据需要修改
+
+# ========== 场景1：匿名访问，使用完整URL ==========
+# openlist:
+#   base_url: "https://openlist.example.com"
+#   username: ""
+#   password: ""
+#   source_path: "/movies"
+# 
+# local:
+#   base_path: "./downloads"
+# 
+# strm:
+#   url_format: "full"
+
+# ========== 场景2：认证访问，使用自定义前缀 ==========
+# openlist:
+#   base_url: "https://openlist.example.com"
+#   username: "your_username"
+#   password: "your_password"
+#   source_path: "/share/videos"
+# 
+# local:
+#   base_path: "./media"
+# 
+# strm:
+#   url_format: "custom"
+#   custom_prefix: "http://192.168.1.100:5244"
+#   url_encode: false
+
+# ========== 场景3：只保存相对路径（用于特殊场景）==========
+# openlist:
+#   base_url: "https://openlist.example.com"
+#   username: "user"
+#   password: "pass"
+#   source_path: "/data"
+# 
+# local:
+#   base_path: "./strm_files"
+# 
+# strm:
+#   url_format: "relative"
+
+# ========== 默认配置（推荐）==========
+openlist:
+  # OpenList服务器地址（必填）
+  base_url: "https://your-openlist-server.com"
+  
+  # 认证方式1：使用用户名密码登录（可选，留空则匿名访问）
+  username: ""
+  password: ""
+  
+  # 认证方式2：直接使用token（推荐）
+  # 如果设置了token，将优先使用token认证，忽略用户名密码
+  # 获取方式：访问 https://docs.openlist.team/zh/guide/api/auth/ 
+  token: ""
+  
+  # 要扫描的源目录路径（必填）
+  # 支持单个路径或多个路径
+  source_path: "/"    # 单个路径（向后兼容）
+  
+  # 多个源目录（如果设置了source_paths，将忽略source_path）
+  # 支持两种格式：
+  # 1. 简单列表（所有目录存储到同一个本地目录）
+  # source_paths:
+  #   - "/movies"
+  #   - "/tv-shows"
+  
+  # 2. 目录映射（每个源目录对应不同的本地目录）
+  source_paths:
+    "/movies": "./downloads/movies"
+    "/tv-shows": "./downloads/tv-shows"
+    # "/anime": "./downloads/anime"
+  
+  # 目录密码（如果目录有密码保护）
+  password: ""
+
+# 本地存储配置
+local:
+  # STRM文件保存路径（必填）
+  base_path: "./downloads"
+
+# STRM文件配置
+strm:
+  # URL格式: "full"(完整URL), "relative"(相对路径), "custom"(自定义前缀)
+  url_format: "full"
+  
+  # 自定义URL前缀（仅在url_format为"custom"时使用）
+  custom_prefix: ""
+  
+  # 是否对URL进行编码
+  url_encode: false
+
+# 下载配置
+max_depth: 10                # 最大文件夹深度
+concurrent_downloads: 5      # 并发下载数
+download_metadata: true      # 是否下载NFO和图片
+
+# 运行模式配置
+sync:
+  # 运行模式: "full"(完全覆盖), "incremental"(增量更新), "update-only"(仅添加)
+  # "full": 删除所有本地文件，重新生成
+  # "incremental": 智能更新，删除失效文件，添加新文件，保留有效文件
+  # "update-only": 只添加新文件，不删除任何本地文件
+  mode: "incremental"
+  
+  # 是否自动清理失效链接（远程文件已删除但本地STRM文件仍存在）
+  cleanup_invalid: true
+  
+  # 是否在运行前询问确认。Flask后台服务建议保持false，避免任务阻塞。
+  confirm_mode: false
+
+# 高级配置
+advanced:
+  timeout: 30               # 请求超时（秒）
+  retry_count: 3            # 重试次数
+  retry_delay: 5            # 重试延迟（秒）
+  verify_ssl: true          # 是否验证SSL证书
+  # proxy: "http://127.0.0.1:7890"  # 代理设置（可选）
+
+# 过滤器配置
+filter:
+  # 自定义视频格式（留空使用默认）
+  video_extensions: []
+  # - ".mp4"
+  # - ".mkv"
+  # - ".avi"
+  
+  # 排除模式（正则表达式）
+  exclude_patterns: []
+  # - ".*\\.tmp$"           # 排除临时文件
+  # - ".*sample.*"          # 排除样片
+  # - ".*\\.part$"          # 排除未完成的下载
+  
+  # 文件大小限制（字节，0表示不限制）
+  min_file_size: 0         # 最小文件大小
+  max_file_size: 0         # 最大文件大小 

@@ -1,0 +1,234 @@
+{% extends "base.html" %}
+{% block title %}编辑配置{% endblock %}
+{% block content %}
+<form method="post" action="{{ url_for('update_config', profile_id=profile.id) }}">
+  <section class="panel detail-head">
+    <div>
+      <p class="eyebrow">配置档案 #{{ profile.id }}</p>
+      <h1>编辑配置</h1>
+      <p class="muted">保存后只影响之后创建的任务；历史任务会继续使用创建时的配置快照。</p>
+    </div>
+    <button type="submit">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+      保存配置
+    </button>
+  </section>
+  {% if errors %}
+    <section class="panel form-errors">
+      <strong>配置未保存</strong>
+      <ul>
+        {% for error in errors %}
+          <li>{{ error }}</li>
+        {% endfor %}
+      </ul>
+    </section>
+  {% endif %}
+  {% if schedule_errors %}
+    <section class="panel form-errors">
+      <strong>定时规则未保存</strong>
+      <ul>
+        {% for error in schedule_errors %}
+          <li>{{ error }}</li>
+        {% endfor %}
+      </ul>
+    </section>
+  {% endif %}
+
+  <section class="form-grid">
+    <div class="panel">
+      <h2>基础信息</h2>
+      <label for="name">配置名称</label>
+      <input id="name" name="name" value="{{ profile.name }}">
+
+      <label for="openlist_base_url">OpenList 地址</label>
+      <input id="openlist_base_url" name="openlist_base_url" value="{{ values.openlist_base_url }}" placeholder="https://openlist.example.com">
+
+      <label for="openlist_token">Token</label>
+      <input id="openlist_token" name="openlist_token" value="{{ values.openlist_token }}" placeholder="推荐使用 token">
+
+      <label for="openlist_username">用户名</label>
+      <input id="openlist_username" name="openlist_username" value="{{ values.openlist_username }}">
+
+      <label for="openlist_password">密码 / 目录密码</label>
+      <input id="openlist_password" name="openlist_password" value="{{ values.openlist_password }}" type="password">
+    </div>
+
+    <div class="panel">
+      <h2>目录映射</h2>
+      <label for="source_paths">源目录到本地目录</label>
+      <textarea id="source_paths" name="source_paths" rows="8">{{ values.source_paths }}</textarea>
+      <p class="form-note">每行一个映射，格式：<span class="mono">/movies =&gt; ./downloads/movies</span></p>
+
+      <label for="local_base_path">默认输出目录</label>
+      <input id="local_base_path" name="local_base_path" value="{{ values.local_base_path }}">
+    </div>
+
+    <div class="panel">
+      <h2>STRM 与同步</h2>
+      <label for="strm_url_format">URL 格式</label>
+      <select id="strm_url_format" name="strm_url_format">
+        {% for option in ["full", "relative", "custom"] %}
+          <option value="{{ option }}" {% if values.strm_url_format == option %}selected{% endif %}>{{ option }}</option>
+        {% endfor %}
+      </select>
+
+      <label for="strm_custom_prefix">自定义 URL 前缀</label>
+      <input id="strm_custom_prefix" name="strm_custom_prefix" value="{{ values.strm_custom_prefix }}">
+
+      <label for="sync_mode">同步模式</label>
+      <select id="sync_mode" name="sync_mode">
+        {% for option in ["incremental", "update-only", "full"] %}
+          <option value="{{ option }}" {% if values.sync_mode == option %}selected{% endif %}>{{ option }}</option>
+        {% endfor %}
+      </select>
+
+      <div class="check-row">
+        <input id="strm_url_encode" name="strm_url_encode" type="checkbox" {% if values.strm_url_encode %}checked{% endif %}>
+        <label for="strm_url_encode">URL 编码</label>
+      </div>
+      <div class="check-row">
+        <input id="download_metadata" name="download_metadata" type="checkbox" {% if values.download_metadata %}checked{% endif %}>
+        <label for="download_metadata">下载元数据</label>
+      </div>
+      <div class="check-row">
+        <input id="cleanup_invalid" name="cleanup_invalid" type="checkbox" {% if values.cleanup_invalid %}checked{% endif %}>
+        <label for="cleanup_invalid">增量模式清理失效 STRM</label>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>性能与过滤</h2>
+      <label for="max_depth">最大深度</label>
+      <input id="max_depth" name="max_depth" value="{{ values.max_depth }}" type="number" min="0">
+
+      <label for="concurrent_downloads">并发数</label>
+      <input id="concurrent_downloads" name="concurrent_downloads" value="{{ values.concurrent_downloads }}" type="number" min="1">
+
+      <label for="advanced_timeout">请求超时秒数</label>
+      <input id="advanced_timeout" name="advanced_timeout" value="{{ values.advanced_timeout }}" type="number" min="1">
+
+      <label for="advanced_retry_count">重试次数</label>
+      <input id="advanced_retry_count" name="advanced_retry_count" value="{{ values.advanced_retry_count }}" type="number" min="0">
+
+      <label for="advanced_retry_delay">重试延迟秒数</label>
+      <input id="advanced_retry_delay" name="advanced_retry_delay" value="{{ values.advanced_retry_delay }}" type="number" min="0">
+
+      <label for="advanced_proxy">代理</label>
+      <input id="advanced_proxy" name="advanced_proxy" value="{{ values.advanced_proxy }}" placeholder="http://127.0.0.1:7890">
+
+      <div class="check-row">
+        <input id="advanced_verify_ssl" name="advanced_verify_ssl" type="checkbox" {% if values.advanced_verify_ssl %}checked{% endif %}>
+        <label for="advanced_verify_ssl">验证 SSL</label>
+      </div>
+    </div>
+
+    <div class="panel wide">
+      <h2>过滤规则</h2>
+      <div class="two-cols">
+        <div>
+          <label for="filter_video_extensions">自定义视频扩展名</label>
+          <textarea id="filter_video_extensions" name="filter_video_extensions" rows="5">{{ values.filter_video_extensions }}</textarea>
+        </div>
+        <div>
+          <label for="filter_exclude_patterns">排除正则</label>
+          <textarea id="filter_exclude_patterns" name="filter_exclude_patterns" rows="5">{{ values.filter_exclude_patterns }}</textarea>
+        </div>
+      </div>
+      <div class="two-cols">
+        <div>
+          <label for="filter_min_file_size">最小文件大小</label>
+          <input id="filter_min_file_size" name="filter_min_file_size" value="{{ values.filter_min_file_size }}" type="number" min="0">
+        </div>
+        <div>
+          <label for="filter_max_file_size">最大文件大小</label>
+          <input id="filter_max_file_size" name="filter_max_file_size" value="{{ values.filter_max_file_size }}" type="number" min="0">
+        </div>
+      </div>
+    </div>
+    
+    <div class="wide" style="display: flex; justify-content: flex-end; padding-top: 1rem;">
+      <button type="submit">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+        保存配置
+      </button>
+    </div>
+  </section>
+</form>
+
+<section class="panel">
+  <div class="section-title">
+    <div>
+      <h2>定时规则</h2>
+      <p class="form-note">同一个配置档案可以配置多条 cron 规则；到点后会自动创建一个后台任务。</p>
+    </div>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>名称</th>
+          <th>Cron</th>
+          <th>状态</th>
+          <th>下次执行</th>
+          <th>最近任务</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for rule in schedule_rules %}
+          <tr>
+            <td colspan="6">
+              <form method="post" action="{{ url_for('update_schedule', rule_id=rule.id) }}" class="schedule-row">
+                <input name="schedule_name" value="{{ rule.name }}" aria-label="规则名称">
+                <input name="cron_expr" value="{{ rule.cron_expr }}" aria-label="cron 表达式" class="mono">
+                <label class="switch-inline">
+                  <input name="enabled" type="checkbox" {% if rule.enabled %}checked{% endif %}>
+                  启用
+                </label>
+                <span class="mono">{{ rule.next_run_at or "-" }}</span>
+                <span>
+                  {% if rule.last_task_id %}
+                    <a class="link-button" href="{{ url_for('task_detail', task_id=rule.last_task_id) }}">#{{ rule.last_task_id }}</a>
+                  {% else %}
+                    -
+                  {% endif %}
+                  {% if rule.last_error %}
+                    <span class="danger-text">{{ rule.last_error }}</span>
+                  {% endif %}
+                </span>
+                <span class="schedule-actions">
+                  <button type="submit" class="secondary">保存</button>
+                </span>
+              </form>
+              <form method="post" action="{{ url_for('delete_schedule', rule_id=rule.id) }}" class="schedule-delete">
+                <button type="submit" class="secondary danger-button">删除</button>
+              </form>
+            </td>
+          </tr>
+        {% else %}
+          <tr>
+            <td colspan="6" class="empty">暂无定时规则。</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <form method="post" action="{{ url_for('create_schedule', profile_id=profile.id) }}" class="schedule-create">
+    <div>
+      <label for="schedule_name">规则名称</label>
+      <input id="schedule_name" name="schedule_name" value="定时同步">
+    </div>
+    <div>
+      <label for="cron_expr">Cron 表达式</label>
+      <input id="cron_expr" name="cron_expr" value="0 3 * * *" class="mono">
+    </div>
+    <label class="switch-inline schedule-enable">
+      <input name="enabled" type="checkbox" checked>
+      启用
+    </label>
+    <button type="submit">添加规则</button>
+  </form>
+  <p class="form-note">示例：<span class="mono">0 3 * * *</span> 每天 03:00，<span class="mono">*/30 * * * *</span> 每 30 分钟。</p>
+</section>
+{% endblock %}

@@ -1,0 +1,190 @@
+{% extends "base.html" %}
+{% block title %}任务 #{{ task.id }}{% endblock %}
+{% block content %}
+<section class="panel detail-head">
+  <div>
+    <p class="eyebrow">任务 #{{ task.id }}</p>
+    <div style="margin-bottom: 0.5rem;"><span class="status {{ task.status }}" data-task-status>{{ task.status }}</span></div>
+    <p class="muted">{{ task.profile_name or ("配置档案 #" ~ task.profile_id) }}</p>
+  </div>
+  <div class="action-row">
+    {% if task.status in ['queued', 'running'] %}
+      <form method="post" action="{{ url_for('cancel_task', task_id=task.id) }}">
+        <button type="submit" class="secondary danger-button">取消任务</button>
+      </form>
+    {% endif %}
+    <form method="post" action="{{ url_for('rerun_task', task_id=task.id) }}">
+      <button type="submit" class="secondary">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+        重新执行
+      </button>
+    </form>
+  </div>
+</section>
+
+{% set progress_percent = task.progress.get("progress_percent") %}
+<section class="metrics">
+  <div class="metric">
+    <span>扫描目录</span>
+    <strong>{{ task.stats.get("directories_scanned", 0) }}</strong>
+  </div>
+  <div class="metric">
+    <span>STRM</span>
+    <strong>{{ task.stats.get("strm_created", 0) }}</strong>
+  </div>
+  <div class="metric">
+    <span>下载文件</span>
+    <strong>{{ task.stats.get("files_downloaded", 0) }}</strong>
+  </div>
+  <div class="metric">
+    <span>错误</span>
+    <strong>{{ task.stats.get("errors", 0) }}</strong>
+  </div>
+</section>
+
+<section class="panel">
+  <div class="section-title">
+    <div>
+      <h2>执行进度</h2>
+      <p class="form-note">页面会自动轮询最新任务状态。</p>
+    </div>
+    <div class="progress-label" data-progress-percent-text>
+      {% if progress_percent is not none %}
+        {{ progress_percent }}%
+      {% else %}
+        -
+      {% endif %}
+    </div>
+  </div>
+  <div class="progress-shell" data-task-progress data-task-id="{{ task.id }}" data-task-status="{{ task.status }}">
+    <div class="progress-track" aria-hidden="true">
+      <div
+        class="progress-fill{% if progress_percent is none and task.status in ['queued', 'running'] %} is-indeterminate{% endif %}"
+        data-progress-fill
+        {% if progress_percent is not none %}
+          style="width: {{ progress_percent }}%;"
+        {% else %}
+          style="width: 0%;"
+        {% endif %}
+      ></div>
+    </div>
+    <div class="progress-meta">
+      <dl class="info-grid">
+        <dt>阶段</dt><dd data-progress-phase>{{ task.progress.get("phase", "-") }}</dd>
+        <dt>当前路径</dt><dd class="mono" data-progress-current>{{ task.progress.get("current_path", "-") }}</dd>
+        <dt>已处理路径</dt><dd data-progress-processed>{{ task.progress.get("processed_paths", 0) }}</dd>
+        <dt>取消请求</dt><dd>{{ "是" if task.cancel_requested else "否" }}</dd>
+      </dl>
+    </div>
+  </div>
+</section>
+
+<section class="panel">
+  <h2>任务信息</h2>
+  <dl class="info-grid">
+    <dt>创建时间</dt><dd>{{ task.created_at }}</dd>
+    <dt>开始时间</dt><dd>{{ task.started_at or "-" }}</dd>
+    <dt>完成时间</dt><dd>{{ task.finished_at or "-" }}</dd>
+    <dt>父任务</dt><dd>{{ task.parent_task_id or "-" }}</dd>
+    <dt>OpenList</dt><dd class="mono">{{ task.config.get("openlist", {}).get("base_url", "-") }}</dd>
+    <dt>输出目录</dt><dd class="mono">{{ task.config.get("local", {}).get("base_path", "-") }}</dd>
+  </dl>
+  {% if task.error %}
+    <pre class="error-box">{{ task.error }}</pre>
+  {% endif %}
+</section>
+
+<section class="panel">
+  <div class="section-title">
+    <h2>错误日志</h2>
+    <a class="link-button" href="{{ url_for('error_logs') }}">全部错误日志</a>
+  </div>
+  {% if error_logs %}
+    <div class="error-list">
+      {% for log in error_logs %}
+        <article class="error-item">
+          <div class="error-meta">
+            <strong>{{ log.created_at }}</strong>
+            <span>{{ log.source }}</span>
+            <span>{{ log.level }}</span>
+          </div>
+          <p>{{ log.message }}</p>
+          {% if log.details %}
+            <pre class="log-box">{{ log.details }}</pre>
+          {% endif %}
+        </article>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="empty">该任务暂无错误日志。</p>
+  {% endif %}
+</section>
+
+<script>
+(() => {
+  const root = document.querySelector('[data-task-progress]');
+  if (!root) return;
+
+  const taskId = root.dataset.taskId;
+  const statusBadge = document.querySelector('[data-task-status]');
+  const fill = root.querySelector('[data-progress-fill]');
+  const percentText = document.querySelector('[data-progress-percent-text]');
+  const phaseNode = root.querySelector('[data-progress-phase]');
+  const currentNode = root.querySelector('[data-progress-current]');
+  const processedNode = root.querySelector('[data-progress-processed]');
+
+  let stopped = false;
+
+  const updateUi = (task) => {
+    const progress = task.progress || {};
+    const percentValue = progress.progress_percent;
+
+    if (statusBadge) {
+      statusBadge.className = `status ${task.status}`;
+      statusBadge.textContent = task.status;
+    }
+
+    if (phaseNode) phaseNode.textContent = progress.phase || '-';
+    if (currentNode) currentNode.textContent = progress.current_path || '-';
+    if (processedNode) processedNode.textContent = progress.processed_paths ?? 0;
+
+    if (percentValue === undefined || percentValue === null) {
+      fill.classList.add('is-indeterminate');
+      fill.style.width = task.status === 'running' ? '30%' : '0%';
+      if (percentText) percentText.textContent = task.status === 'running' ? '进行中' : '-';
+    } else {
+      const clamped = Math.max(0, Math.min(100, Number(percentValue) || 0));
+      fill.classList.remove('is-indeterminate');
+      fill.style.width = `${clamped}%`;
+      if (percentText) percentText.textContent = `${clamped}%`;
+    }
+
+    root.dataset.taskStatus = task.status;
+    if (!['queued', 'running'].includes(task.status)) {
+      stopped = true;
+    }
+  };
+
+  const poll = async () => {
+    if (stopped) return;
+    try {
+      const response = await fetch(`/tasks/${taskId}`, {
+        headers: { Accept: 'application/json' },
+        cache: 'no-store',
+      });
+      if (!response.ok) return;
+      updateUi(await response.json());
+    } catch (error) {
+      console.warn('task progress polling failed', error);
+    }
+    if (!stopped) {
+      window.setTimeout(poll, 2000);
+    }
+  };
+
+  if (['queued', 'running'].includes(root.dataset.taskStatus)) {
+    window.setTimeout(poll, 1200);
+  }
+})();
+</script>
+{% endblock %}
