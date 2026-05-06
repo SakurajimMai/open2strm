@@ -12,13 +12,11 @@ import yaml
 import os
 import sys
 import logging
-import hashlib
 import urllib.parse
 import re
 import shutil
 from pathlib import Path
 from typing import Callable, Dict, List, Optional, Set, Tuple
-from datetime import datetime
 import argparse
 from functools import wraps
 import time

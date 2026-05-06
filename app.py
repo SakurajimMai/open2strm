@@ -24,7 +24,7 @@ def create_app(
     task_runner: TaskRunner | None = None,
     start_worker: bool = True,
 ) -> Flask:
-    """创建 Flask 应用，便于测试和生产部署复用。"""
+    """创建 Flask 应用，便于本地验证和生产部署复用。"""
     app = Flask(__name__)
     runtime_dir = Path(data_dir) if data_dir is not None else DATA_DIR
     config_path = default_config or DEFAULT_CONFIG
@@ -362,7 +362,7 @@ def _error_log_filters() -> dict:
 
 
 def enable_auth(store: TaskStore, username: str, password: str) -> None:
-    """给测试和初始化脚本复用的鉴权设置入口。"""
+    """给初始化脚本复用的鉴权设置入口。"""
     store.save_auth_settings(
         {
             "enabled": True,
